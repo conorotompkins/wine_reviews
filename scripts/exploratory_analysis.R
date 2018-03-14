@@ -57,3 +57,6 @@ df %>%
 
 df %>% 
   filter(is.na(designation))
+
+df %>% 
+  count(winery, variety, sort = TRUE)
