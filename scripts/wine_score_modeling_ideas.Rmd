@@ -1,0 +1,18 @@
+---
+title: "Wine score modeling ideas"
+author: "Conor Tompkins"
+date: "March 15, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Wine Analysis score modeling
+
+###Idea 1
+- Use colors on bigram (one varietal per graph) to associate points with flavors
+- Use a matrix to look at all varietals and run an algorithm on bigram to build a regression to see which ones are most commonly used based on scoring
+- i.e. see how black currant is scored when used with cab vs chardonnay; chardonnay should have negative correlation while cab should have higher
+- think about how N/A's will calculate...highly likely that no chardonnay will have black currant...
