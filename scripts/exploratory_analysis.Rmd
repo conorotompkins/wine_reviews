@@ -1,0 +1,164 @@
+---
+title: "exploratory_analysis"
+author: "Conor Tompkins"
+date: "3/17/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = FALSE,
+                      warning = FALSE,
+                      paged.print = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(viridis)
+
+theme_set(theme_bw(base_size = 18))
+```
+
+```{r}
+df <- read_csv("data/winemag-data_first150k.csv") %>% 
+  rename(id= X1)
+
+glimpse(df)
+```
+
+```{r}
+df %>% 
+  count(country, sort = TRUE)
+
+df %>% 
+  filter(is.na(country))
+```
+
+```{r}
+df %>% 
+  filter(!is.na(country)) %>% 
+  count(country) %>% 
+  arrange(n) %>% 
+  top_n(20) %>% 
+  mutate(country = factor(country, levels = unique(country))) %>% 
+  ggplot(aes(country, n)) +
+  geom_col() +
+  #scale_x_reverse() +
+  coord_flip()
+```
+```{r}
+df %>% 
+  count(variety) %>% 
+  arrange(n) %>% 
+  top_n(20) %>%  
+  mutate(variety = factor(variety, levels = unique(variety))) %>% 
+  ggplot(aes(variety, n)) +
+  geom_col() +
+  #scale_x_reverse() +
+  coord_flip()
+```
+```{r}
+df %>% 
+  count(winery) %>% 
+  arrange(n) %>% 
+  top_n(20) %>% 
+  mutate(winery = factor(winery, levels = unique(winery))) %>% 
+  ggplot(aes(winery, n)) +
+  geom_col() +
+  #scale_x_reverse() +
+  coord_flip()
+```
+```{r}
+df %>% 
+  filter(is.na(designation))
+
+df %>% 
+  filter(!is.na(designation)) %>% 
+  count(designation) %>% 
+  arrange(n) %>% 
+  top_n(20) %>% 
+  mutate(designation = factor(designation, levels = unique(designation))) %>% 
+  ggplot(aes(designation, n)) +
+  geom_col() +
+  #scale_x_reverse() +
+  coord_flip()
+```
+
+```{r}
+#df %>% 
+  
+
+df %>% 
+  count(winery, variety, sort = TRUE) %>% 
+  top_n(100) %>% 
+  ggplot(aes(variety, winery, fill = n)) +
+  geom_tile() +
+  coord_equal() +
+  scale_x_discrete(expand = c(0,0)) +
+  scale_y_discrete(expand = c(0,0)) +
+  scale_fill_viridis()
+```
+
+```{r}
+filter <- 20
+df %>% 
+  count(variety, sort = TRUE) %>% 
+  top_n(filter) %>% 
+  select(variety) %>% 
+  mutate(variety = factor(variety, levels = unique(variety))) -> top_varieties
+
+df %>% 
+  count(country, sort = TRUE) %>% 
+  top_n(filter) %>% 
+  select(country) %>% 
+  mutate(country = factor(country, levels = unique(country))) -> top_countries
+
+df %>% 
+  semi_join(top_countries) %>% 
+  semi_join(top_varieties) %>% 
+  mutate(country = factor(country, levels = rev(unique(top_countries$country))),
+         variety = factor(variety, levels = unique(top_varieties$variety))) %>% 
+  ggplot(aes(variety, country)) +
+  geom_jitter(alpha = .01) +
+  coord_equal() +
+  theme(axis.text.x = element_text(angle = 90),
+        panel.grid = element_blank())
+
+
+df %>% 
+  filter(!is.na(country), !is.na(variety)) %>% 
+  semi_join(top_countries) %>% 
+  semi_join(top_varieties) %>% 
+  mutate(country = factor(country, levels = rev(unique(top_countries$country))),
+         variety = factor(variety, levels = unique(top_varieties$variety))) %>%
+  count(country, variety, sort = TRUE) %>% 
+  complete(country, variety) %>% 
+  replace_na(list(n = 0)) %>% 
+  ggplot(aes(variety, country, fill = log10(n))) +
+  geom_tile() +
+  coord_equal() +
+  scale_fill_viridis() +
+  theme(axis.text.x = element_text(angle = 90),
+        panel.grid = element_blank())
+```
+
+
+
+
+
+```{r}
+df %>% 
+  count(winery, variety, sort = TRUE)
+
+df %>% 
+  filter(!is.na(winery), !is.na(variety)) %>% 
+  count(winery, variety) %>% 
+  arrange(winery, desc(n)) %>% 
+  group_by(winery) %>% 
+  top_n(20) %>% 
+  mutate(designation = factor(designation, levels = unique(designation))) %>% 
+  ggplot(aes(designation, n)) +
+  geom_col() +
+  #scale_x_reverse() +
+  coord_flip()
+```
