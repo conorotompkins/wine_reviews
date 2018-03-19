@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE,
 ```{r}
 library(tidyverse)
 library(viridis)
+library(ggridges)
 
 theme_set(theme_bw(base_size = 18))
 ```
@@ -148,17 +149,119 @@ df %>%
 
 ```{r}
 df %>% 
-  count(winery, variety, sort = TRUE)
+  ggplot(aes(points)) +
+  geom_density(bw = .5) +
+  geom_vline(xintercept = mean(df$points)) +
+  geom_vline(xintercept = median(df$points), linetype = 2)
+```
+
+```{r}
+filter_variety <- 5
+df %>% 
+  count(variety, sort = TRUE) %>% 
+  top_n(filter_variety) %>% 
+  select(variety) %>% 
+  mutate(variety = factor(variety, levels = unique(variety))) -> top_varieties
+top_varieties
+
+filter_country <- 10
+df %>% 
+  count(country, sort = TRUE) %>% 
+  top_n(filter_country) %>% 
+  select(country) %>% 
+  mutate(country = factor(country, levels = unique(country))) -> top_countries
+top_countries
 
 df %>% 
-  filter(!is.na(winery), !is.na(variety)) %>% 
-  count(winery, variety) %>% 
-  arrange(winery, desc(n)) %>% 
-  group_by(winery) %>% 
-  top_n(20) %>% 
-  mutate(designation = factor(designation, levels = unique(designation))) %>% 
-  ggplot(aes(designation, n)) +
-  geom_col() +
-  #scale_x_reverse() +
-  coord_flip()
+  filter(!is.na(country)) %>% 
+  semi_join(top_countries) %>% 
+  #semi_join(top_varieties) %>% 
+  ggplot(aes(points, fill = country)) +
+  geom_density(bw = .5) +
+  facet_wrap(~country,
+             ncol = 1)
+```
+
+```{r}
+df %>% 
+  group_by(country) %>% 
+  summarize(points_mean = mean(points, na.rm = TRUE),
+            points_sd = sd(points, na.rm = TRUE)) %>% 
+  arrange(points_mean, points_sd) %>% 
+  mutate(country = factor(country, levels = unique(country))) %>% 
+  select(country) %>% 
+  unlist() -> factor_country
+
+df %>% 
+  group_by(country) %>% 
+  mutate(country_n = n()) %>% 
+  ungroup() %>% 
+  mutate(country = factor(country, levels = factor_country)) %>% 
+  filter(!is.na(country)) %>% 
+  semi_join(top_countries) %>%
+  #semi_join(top_varieties) %>% 
+  ggplot(aes(y = country, group = country, fill = country)) +
+  geom_density_ridges(aes(x = points, alpha = country_n))
+  #facet_wrap(~variety, 
+  #           nrow = 1)
+  #coord_cartesian(xlim = c(80, 95))
+```
+
+```{r}
+df %>% 
+  ggplot(aes(price)) +
+  geom_density()
+
+df %>% 
+  ggplot(aes(log10(price))) +
+  geom_density()
+```
+
+```{r}
+filter_variety <- 5
+df %>% 
+  count(variety, sort = TRUE) %>% 
+  top_n(filter_variety) %>% 
+  select(variety) %>% 
+  mutate(variety = factor(variety, levels = unique(variety))) -> top_varieties
+top_varieties
+
+df %>% 
+  semi_join(top_varieties) %>% 
+  ggplot(aes(y = variety, group = variety)) +
+  geom_density_ridges(aes(x = log10(price)))
+```
+
+
+```{r}
+filter_country <- 5
+df %>% 
+  count(country, sort = TRUE) %>% 
+  top_n(filter_country) %>% 
+  select(country) %>% 
+  mutate(country = factor(country, levels = unique(country))) -> top_country
+top_country
+
+df %>% 
+  semi_join(top_country) %>% 
+  ggplot(aes(y = country, group = country)) +
+  geom_density_ridges(aes(x = log10(price)))
+```
+
+```{r}
+df %>%
+  group_by(points) %>%
+  summarize(price_mean = mean(price, na.rm = TRUE),
+            price_median = median(price, na.rm = TRUE)) %>% 
+  arrange(desc(price_mean)) %>% 
+  ggplot(aes(price_mean, price_median)) +
+  geom_jitter(alpha = .5)
+
+
+df %>% 
+  #filter(price <= 500) %>% 
+  ggplot(aes(log10(price), points)) +
+  #geom_jitter(alpha = .1)
+  stat_density_2d(aes(fill = ..level..), geom = "polygon", h = 2) +
+  scale_fill_viridis()
 ```
