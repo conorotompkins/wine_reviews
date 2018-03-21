@@ -140,13 +140,13 @@ wine_reviews
 
 word_cors <- wine_reviews %>%
   group_by(trigram) %>%
-  filter(n() >= 10) %>%
+  filter(n() >= 20) %>%
   pairwise_cor(trigram, section, sort = TRUE)
 
 word_cors
 
 word_cors %>%
-  filter(correlation > .2) %>%
+  filter(correlation > .3) %>%
   graph_from_data_frame() %>%
   ggraph(layout = "fr") +
   geom_edge_link(aes(edge_alpha = correlation), show.legend = FALSE) +
