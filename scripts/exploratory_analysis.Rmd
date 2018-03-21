@@ -9,7 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE,
                       warning = FALSE,
-                      paged.print = FALSE)
+                      paged.print = FALSE,
+                      cache = TRUE)
 ```
 
 ```{r}
@@ -258,13 +259,15 @@ df %>%
   ggplot(aes(price_mean, price_median)) +
   geom_jitter(alpha = .5)
 
-
 df %>% 
+  select(price, points) %>% 
   #filter(price <= 500) %>% 
   ggplot(aes(log10(price), points)) +
-  #geom_jitter(alpha = .1)
+  #geom_jitter(alpha = 0) +
   stat_density_2d(aes(fill = ..level..), geom = "polygon", h = 2) +
   scale_fill_viridis()
+  #scale_x_continuous(limits = c(0, 3))
+  #coord_cartesian(xlim = c(0, 3))
 ```
 
 ```{r}
@@ -275,5 +278,16 @@ df %>%
   #geom_jitter(alpha = .1)+
   stat_density_2d(aes(fill = ..level..), geom = "polygon", h = 2) +
   facet_wrap(~variety) +
+  scale_fill_viridis()
+```
+
+```{r}
+df %>% 
+  semi_join(top_countries) %>% 
+  #filter(price <= 500) %>% 
+  ggplot(aes(log10(price), points)) +
+  #geom_jitter(alpha = .1)+
+  stat_density_2d(aes(fill = ..level..), geom = "polygon", h = 2) +
+  facet_wrap(~country) +
   scale_fill_viridis()
 ```
