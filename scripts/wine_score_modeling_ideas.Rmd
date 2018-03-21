@@ -16,3 +16,16 @@ knitr::opts_chunk$set(echo = TRUE)
 - Use a matrix to look at all varietals and run an algorithm on bigram to build a regression to see which ones are most commonly used based on scoring
 - i.e. see how black currant is scored when used with cab vs chardonnay; chardonnay should have negative correlation while cab should have higher
 - think about how N/A's will calculate...highly likely that no chardonnay will have black currant...
+
+##Idea 2
+*Determine top 5 bigrams for each variety
+*Rank bigrams 1-5, #1 gets 5 points, 4 gets 4 etc
+*join score df with df of bigrams
+*add up bigram points
+*correlate bigram points with review score
+
+##Idea 3
+*Determine top 5 bigrams for each variety
+*join score df with df of bigrams
+*spread df to turn bigram rows into columns
+*use matrix to do regression
