@@ -21,7 +21,7 @@ theme_set(theme_bw(base_size = 18))
 ```
 
 ```{r}
-df <- read_csv("data/winemag-data_first150k.csv") %>% 
+df <- read_csv("https://raw.githubusercontent.com/conorotompkins/wine_reviews/master/data/winemag-data_first150k.csv") %>% 
   rename(id= X1)
 
 glimpse(df)
@@ -156,6 +156,7 @@ df %>%
 ```
 
 ```{r}
+#delete, replaced by geom_ridges
 filter_variety <- 5
 df %>% 
   count(variety, sort = TRUE) %>% 
@@ -184,10 +185,8 @@ df %>%
 
 ```{r}
 df %>% 
-  group_by(country) %>% 
-  summarize(points_mean = mean(points, na.rm = TRUE),
-            points_sd = sd(points, na.rm = TRUE)) %>% 
-  arrange(points_mean, points_sd) %>% 
+  count(country) %>% 
+  arrange(n) %>% 
   mutate(country = factor(country, levels = unique(country))) %>% 
   select(country) %>% 
   unlist() -> factor_country
@@ -201,7 +200,8 @@ df %>%
   semi_join(top_countries) %>%
   #semi_join(top_varieties) %>% 
   ggplot(aes(y = country, group = country, fill = country)) +
-  geom_density_ridges(aes(x = points, alpha = country_n))
+  geom_density_ridges(aes(x = points)) +
+  guides(fill = FALSE)
   #facet_wrap(~variety, 
   #           nrow = 1)
   #coord_cartesian(xlim = c(80, 95))
@@ -218,10 +218,11 @@ df %>%
 ```
 
 ```{r}
-filter_variety <- 5
+filter_variety <- 10
 df %>% 
   count(variety, sort = TRUE) %>% 
   top_n(filter_variety) %>% 
+  arrange(n) %>% 
   select(variety) %>% 
   mutate(variety = factor(variety, levels = unique(variety))) -> top_varieties
 top_varieties
@@ -263,5 +264,16 @@ df %>%
   ggplot(aes(log10(price), points)) +
   #geom_jitter(alpha = .1)
   stat_density_2d(aes(fill = ..level..), geom = "polygon", h = 2) +
+  scale_fill_viridis()
+```
+
+```{r}
+df %>% 
+  semi_join(top_varieties) %>% 
+  #filter(price <= 500) %>% 
+  ggplot(aes(log10(price), points)) +
+  #geom_jitter(alpha = .1)+
+  stat_density_2d(aes(fill = ..level..), geom = "polygon", h = 2) +
+  facet_wrap(~variety) +
   scale_fill_viridis()
 ```
